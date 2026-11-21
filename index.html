@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1"><title>仕入れ利益率ダッシュボード</title>
+<style>
+:root{--bg:#f6f7f5;--fg:#1c1d1b;--muted:#676a64;--card:#ffffff;--line:#e1e3de;--zebra:#fafbf9;--good:#17734a;--goodbg:rgba(23,115,74,.13);--mid:#8f6400;--midbg:rgba(143,100,0,.13);--low:#7d807a;--lowbg:rgba(125,128,122,.13);--chip:#eceee9;--chipon:#1c1d1b;--chipontxt:#ffffff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151614;--fg:#ecede8;--muted:#9a9d95;--card:#1f201e;--line:#33352f;--zebra:#232422;--good:#52c78f;--goodbg:rgba(82,199,143,.16);--mid:#e3b553;--midbg:rgba(227,181,83,.16);--low:#8f928b;--lowbg:rgba(143,146,139,.16);--chip:#2a2b28;--chipon:#ecede8;--chipontxt:#151614;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151614;--fg:#ecede8;--muted:#9a9d95;--card:#1f201e;--line:#33352f;--zebra:#232422;--good:#52c78f;--goodbg:rgba(82,199,143,.16);--mid:#e3b553;--midbg:rgba(227,181,83,.16);--low:#8f928b;--lowbg:rgba(143,146,139,.16);--chip:#2a2b28;--chipon:#ecede8;--chipontxt:#151614;color-scheme:dark}
+.pd{background:var(--bg);color:var(--fg);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px max(16px,env(safe-area-inset-right,0px));max-width:1000px;margin:0 auto;line-height:1.5}
+.pd h1{font-size:20px;margin:0 0 4px}
+.pd .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.pd .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.pd .tab{font:inherit;font-size:14px;border:0;border-radius:999px;padding:8px 16px;background:var(--chip);color:var(--fg);cursor:pointer}
+.pd .tab[aria-pressed="true"]{background:var(--chipon);color:var(--chipontxt);font-weight:700}
+.pd .tab:focus-visible{outline:2px solid var(--good);outline-offset:2px}
+.pd .tab span{opacity:.7;margin-left:6px;font-variant-numeric:tabular-nums}
+.pd section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.pd section.b100{border-top:4px solid var(--good)}
+.pd section.b90{border-top:4px solid var(--mid)}
+.pd section.bref{border-top:4px solid var(--low)}
+.pd h2{font-size:16px;margin:0 0 2px;display:flex;gap:8px;align-items:baseline}
+.pd h2 em{font-style:normal;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pd .hint{color:var(--muted);font-size:12px;margin:0 0 8px}
+.pd .tbl{overflow-x:auto}
+.pd table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums;min-width:760px}
+.pd th{color:var(--muted);font-weight:600;font-size:12px;white-space:nowrap;text-align:left;padding:6px 8px;border-bottom:2px solid var(--line)}
+.pd td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.pd tbody tr:nth-child(even){background:var(--zebra)}
+.pd td.n,.pd th.n{text-align:right;white-space:nowrap}
+.pd .name{font-weight:600;font-size:14px}
+.pd .meta{color:var(--muted);font-size:12px;margin-top:2px}
+.pd .tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-right:4px;color:var(--muted);white-space:nowrap}
+.pd .big{font-size:16px;font-weight:700}
+.pd .pill{display:inline-block;border-radius:8px;padding:3px 10px;font-weight:700;font-size:15px}
+.pd .p-good{background:var(--goodbg);color:var(--good)}
+.pd .p-mid{background:var(--midbg);color:var(--mid)}
+.pd .p-low{background:var(--lowbg);color:var(--low)}
+.pd .small{color:var(--muted);font-size:12px;margin-top:2px}
+.pd .memo{font-size:12px;color:var(--muted)}
+.pd .stock-ng{color:#b3261e;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pd .stock-ng{color:#ff8a80}}
+:root[data-theme="dark"] .pd .stock-ng{color:#ff8a80}
+.pd .empty{color:var(--muted);font-size:13px;padding:10px 0}
+.pd .basis{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px;font-size:13px}
+.pd .basis b{font-weight:600;color:var(--muted);font-size:12px}
+.pd .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.pd .seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--fg);padding:6px 14px;cursor:pointer}
+.pd .seg button[aria-pressed="true"]{background:var(--chipon);color:var(--chipontxt);font-weight:700}
+.pd .seg button:focus-visible{outline:2px solid var(--good);outline-offset:-2px}
+.pd .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:0 0 16px}
+.pd .legend div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted);line-height:1.6}
+.pd .legend strong{display:block;color:var(--fg);font-size:13px}
+.pd th.grp{text-align:center;border-bottom:1px solid var(--line);padding-bottom:2px}
+.pd td.sep,.pd th.sep{border-left:1px solid var(--line)}
+.pd td.on{background:var(--zebra)}
+.pd .pill.dim{font-size:13px;padding:2px 8px}
+.pd .gain{font-size:12px;margin-top:3px}
+.pd .gain.plus{color:var(--good);font-weight:600}
+.pd .gain.minus{color:var(--muted)}
+.pd .note{color:var(--muted);font-size:12px;line-height:1.7}
+</style></head><body>
+<div class="pd">
+<h1>仕入れ利益率ダッシュボード</h1>
+<p class="sub">利益率 ＝ 買取価格 ÷ 仕入れ額。ポイントを「含めない場合」と「差し引いた場合」を横に並べています。</p>
+<div class="legend">
+<div><strong>ポイントを含めない</strong>仕入れ額 ＝ 販売価格そのまま。現金だけで考えた、いちばん厳しい見方です。</div>
+<div><strong>ポイントを差し引く</strong>仕入れ額 ＝ 販売価格 − もらえるポイント。ポイントを次の仕入れに使う前提の見方です。</div>
+</div>
+<div class="basis"><b>表の分け方・並び順の基準</b><div class="seg" id="basis" role="group" aria-label="基準の切り替え"><button type="button" data-b="inc">ポイント差し引き</button><button type="button" data-b="ex">ポイント含めない</button></div></div>
+<div class="tabs" id="tabs" role="group" aria-label="区分で絞り込み"></div>
+<section class="b100"><h2>利益率100%以上 <em id="c100"></em><em class="bandby"></em></h2><p class="hint">買取価格が仕入れ価格を上回る商品</p><div class="tbl" data-source="matches"><div id="t100" class="empty">読み込み中…</div></div></section>
+<section class="b90"><h2>利益率90〜100% <em id="c90"></em><em class="bandby"></em></h2><p class="hint">ほぼ同額で回せる商品（ポイント・キャンペーン次第で利益が出る候補）</p><div class="tbl" data-source="matches"><div id="t90" class="empty">読み込み中…</div></div></section>
+<section class="bref"><h2>参考（90%未満） <em id="cref"></em><em class="bandby"></em></h2><p class="hint">買取強化中などで照合済みだが、90%に届かない商品</p><div class="tbl" data-source="matches"><div id="tref" class="empty">読み込み中…</div></div></section>
+<p class="note" id="foot">※ 価格は確認時点の値です。購入前に各サイトで最新の価格・在庫・購入制限を、売却前に買取店の最新価格と色・状態による減額を確認してください。毎日9時・12時・18時に自動更新します。</p>
+</div>
+<script>var __K=["category", "product", "retailer", "retailer_type", "retailer_price_yen", "points_yen", "kaitori_shop", "kaitori_price_yen", "margin_excl_points_pct", "margin_incl_points_pct", "checked_date", "note"];var __D=[["ゲーム機","PlayStation 5 Pro CFI-7000B01","ビックカメラ.com","家電量販店","137980","0","海峡通信","213700","154.9","154.9","2026-11-21","販売休止中（仕入れ不可）・型番要確認"],["ゲーム機","Xbox Series X 1TB ディスクドライブ EP2-63835","ヨドバシ.com","家電量販店","117980","1180","買取ルデヤ","122200","103.6","104.6","2026-11-21","予定数の販売を終了（在庫なし）"],["ゲーム機","Xbox Series X 1TB デジタル EP2-00708","ヨドバシ.com","家電量販店","109980","1100","買取ルデヤ","110700","100.7","101.7","2026-11-21","予定数の販売を終了（在庫なし）"],["携帯端末","iPhone Duo 1TB SIMフリー","Apple Store","メーカー直販","469800","0","森森買取","465000","99.0","99.0","2026-11-21","在庫・納期は未確認・色減額に注意"],["携帯端末","iPhone Duo 512GB SIMフリー","Apple Store","メーカー直販","399800","0","家電市場","393500","98.4","98.4","2026-11-21","在庫・納期は未確認・色減額に注意"],["携帯端末","iPhone Duo 2TB SIMフリー","Apple Store","メーカー直販","574800","0","森森買取","565000","98.3","98.3","2026-11-21","在庫・納期は未確認・色減額に注意"],["携帯端末","iPhone Duo 256GB SIMフリー","Apple Store","メーカー直販","364800","0","買取ルデヤ","354500","97.2","97.2","2026-11-21","在庫・納期は未確認・色減額に注意"],["携帯端末","iPhone 18 Pro Max 1TB SIMフリー","Apple Store","メーカー直販","344800","0","森森買取","330000","95.7","95.7","2026-11-21","Apple価格は比較サイトの定価から算出・要確認"],["携帯端末","iPhone 18 Pro Max 512GB SIMフリー","Apple Store","メーカー直販","274800","0","川崎阿福買取","261000","95.0","95.0","2026-11-21","Apple価格は比較サイトの定価から算出・要確認"],["携帯端末","iPhone 18 Pro 512GB グレイシャー SIMフリー MJRE4J/A","ヨドバシ.com","家電量販店","267540","13377","森森買取","241000","90.1","94.8","2026-11-21","在庫残少"],["携帯端末","iPhone 18 Pro 512GB SIMフリー","Apple Store","メーカー直販","254800","0","森森買取","241000","94.6","94.6","2026-11-21","在庫・納期は未確認"],["携帯端末","iPhone 18 Pro 256GB グレイシャー SIMフリー MJR84J/A","ヨドバシ.com","家電量販店","230790","11540","森森買取","207500","89.9","94.6","2026-11-21","在庫あり"],["携帯端末","iPhone 18 Pro 256GB SIMフリー","Apple Store","メーカー直販","219800","0","森森買取","207500","94.4","94.4","2026-11-21","在庫・納期は未確認"],["携帯端末","iPhone 18 Pro Max 256GB SIMフリー","Apple Store","メーカー直販","239800","0","川崎阿福買取","226000","94.2","94.2","2026-11-21","Apple価格は比較サイトの定価から算出・要確認"],["携帯端末","iPhone 18 Pro 1TB SIMフリー","Apple Store","メーカー直販","324800","0","森森買取","302000","93.0","93.0","2026-11-21","在庫・納期は未確認"],["ゲーム機","PS5 デジタル 日本語専用 ダブルパック CFIJ-10032","楽天市場（電子問屋 2号店）","ECモール","64980","1180","ゲストモバイル","59000","90.8","92.5","2026-11-21","新品・型番要確認"],["ゲーム機","PS5 デジタル 日本語専用 ダブルパック CFIJ-10032","Amazon.co.jp","ECモール","65000","650","ゲストモバイル","59000","90.8","91.7","2026-11-21","在庫あり・型番要確認"],["ゲーム機","PS5 デジタル 日本語専用 ダブルパック CFIJ-10032","ヨドバシ.com","家電量販店","65000","650","ゲストモバイル","59000","90.8","91.7","2026-11-21","在庫あり・型番要確認"],["ゲーム機","Nintendo Switch バッテリー強化版 ネオン HAD-S-KABAH","ビックカメラ.com","家電量販店","43980","440","森森買取","39500","89.8","90.7","2026-11-21","在庫あり"],["家電","instax mini Evo GENTLE ROSE INS MINI EVO G PK C","ヨドバシ.com","家電量販店","35200","3520","買取ルデヤ","28600","81.2","90.3","2026-11-21","在庫あり・ポイント10%"],["ゲーム機","Nintendo Switch 2 日本語・国内専用 BEE-S-KB6CA","ヨドバシ.com","家電量販店","59980","600","家電市場","53300","88.9","89.8","2026-11-21","在庫あり（ビックも同価格）"],["携帯端末","iPhone 17 256GB ホワイト SIMフリー MG684J/A","ヨドバシ.com","家電量販店","167790","8390","ゲストモバイル","143200","85.3","89.8","2026-11-21","在庫残少"],["携帯端末","iPhone 18 Pro Max 2TB SIMフリー","Apple Store","メーカー直販","449800","0","買取wiki","400000","88.9","88.9","2026-11-21","Apple価格は比較サイトの定価から算出・要確認"],["家電","Mac mini M6/24GB/512GB MHQM4J/A","ヨドバシ.com","家電量販店","221800","2218","家電市場","194500","87.7","88.6","2026-11-21","販売休止中・買取強化中"],["ゲーム機","Nintendo Switch 有機EL ホワイト HEG-S-KAAAA","ビックカメラ.com","家電量販店","47980","480","買取商店","42000","87.5","88.4","2026-11-21","在庫あり"],["携帯端末","iPhone 18 Pro 2TB SIMフリー","Apple Store","メーカー直販","429800","0","森森買取","375000","87.2","87.2","2026-11-21","在庫・納期は未確認"],["ゲーム機","Meta Quest 3S 128GB SK-1000204-01","ヨドバシ.com","家電量販店","57000","570","家電市場","48600","85.3","86.1","2026-11-21","在庫あり・買取強化中"],["家電","ソニー WH-1000XX ブラック（1000X THE COLLEXION）","ヨドバシ.com","家電量販店","89100","0","家電市場","74200","83.3","83.3","2026-11-21","在庫あり・買取強化中"],["家電","ラムダッシュ パームイン プロ ES-P690U-S","ヨドバシ.com","家電量販店","84150","0","家電市場","69200","82.2","82.2","2026-11-21","在庫あり・買取強化中"],["家電","パナソニック ビストロ NE-FB2D-W","ヨドバシ.com","家電量販店","44550","0","家電市場","35300","79.2","79.2","2026-11-21","在庫残少・買取強化中"],["家電","ラムダッシュ パームイン プロ ES-P650U-K","ヨドバシ.com","家電量販店","54450","0","家電市場","42500","78.1","78.1","2026-11-21","在庫あり・買取強化中"],["携帯端末","NEC LAVIE Tab EX PC-TX117LAS","ヨドバシ.com","家電量販店","94380","9438","家電市場","62000","65.7","73.0","2026-11-21","在庫残少・買取強化中"],["家電","BALMUDA The Lantern L02A-BK","ヨドバシ.com","家電量販店","15940","797","森森買取","10000","62.7","66.0","2026-11-21","お取り寄せ・買取強化中"],["家電","Apple AirTag 4パック MX542ZP/A","ヨドバシ.com","家電量販店","16980","170","森森買取","9700","57.1","57.7","2026-11-21","在庫あり・買取強化中"],["家電","アラジン Aladdinグラファイトオーブンレンジ 22L グラファイトレンジ加熱 簡易スチーム機能 ホワイト AEM-G14AW","ヨドバシ.com","家電量販店","55000","5500","家電市場","45500","82.7","91.9","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","三菱電機 MITSUBISHI ELECTRICIHジャー炊飯器 備長炭炭炊釜 備長炭コート 3.5合炊き 月白（げっぱく） NJ-SE06F-W","ヨドバシ.com","家電量販店","19440","0","家電市場","17200","88.5","88.5","2026-11-21","販売を終了・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBAリベイクオーブンレンジ Derich（デリッチ） 17L ミルキーホワイト ER-RB9C（W）","ヨドバシ.com","家電量販店","38280","3828","家電市場","30300","79.2","87.9","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARP過熱水蒸気オーブンレンジ PLAINLY 30L 1段調理 縦開き ホワイト RE-WF307-W","ヨドバシ.com","家電量販店","64630","6463","家電市場","50000","77.4","86","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARP過熱水蒸気オーブンレンジ PLAINLY 30L 1段調理 縦開き ブラック RE-WF307-B","ヨドバシ.com","家電量販店","64630","6463","家電市場","50000","77.4","86","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBA単機能レンジ 20L ホワイト ER-S8C（W）","ヨドバシ.com","家電量販店","38280","3828","家電市場","29200","76.3","84.8","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBAオーブンレンジ 横開き 16L ホワイト ER-20C（W）","ヨドバシ.com","家電量販店","32780","3278","家電市場","25000","76.3","84.7","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","SharkNinja 軽量コードレススティッククリーナー Shark EVOPOWER SYSTEM BOOST","ヨドバシ.com","家電量販店","36660","0","家電市場","31000","84.6","84.6","2026-11-21","販売を終了・型番一致・買取は家電市場の最高値"],["家電","ドリーミー DREAME コードレススティッククリーナー Dreame S1 Station VXV26G","ヨドバシ.com","家電量販店","55330","5533","家電市場","42000","75.9","84.3","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBA単機能レンジ フラットタイプ 縦開き 19L ホワイト ER-S6C（W）","ヨドバシ.com","家電量販店","26180","2618","家電市場","19500","74.5","82.8","2026-11-21","お取り寄せ・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHI小容量圧力IH炊飯ジャー 極め炊き 3合炊き ホワイト NP-RU05-WA","ヨドバシ.com","家電量販店","26500","2650","家電市場","19700","74.3","82.6","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","ドリーミー DREAME コードレススティッククリーナー Dreame S1 PenStyle VXV22C","ヨドバシ.com","家電量販店","39800","3980","家電市場","29000","72.9","81","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","タイガー TIGER圧力IHジャー炊飯器 5.5合炊き ディープブラウン JRI-H100TP","ヨドバシ.com","家電量販店","32750","0","家電市場","26500","80.9","80.9","2026-11-21","販売を終了・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARP過熱水蒸気オーブンレンジ PLAINLY 27L 縦開き ブラック RE-WF277-B","ヨドバシ.com","家電量販店","52290","5229","家電市場","38000","72.7","80.7","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARP過熱水蒸気オーブンレンジ PLAINLY 27L 縦開き ホワイト RE-WF277-W","ヨドバシ.com","家電量販店","52290","5229","家電市場","38000","72.7","80.7","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHI小容量圧力IH炊飯ジャー 極め炊き 3合炊き スレートブラック NP-RU05-BZ","ヨドバシ.com","家電量販店","26500","2650","家電市場","19200","72.5","80.5","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARPオーブンレンジ PLAINLY 18L 縦開き ブラック RE-WF187-B","ヨドバシ.com","家電量販店","41610","4161","家電市場","30000","72.1","80.1","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARPオーブンレンジ PLAINLY 18L 縦開き ホワイト RE-WF187-W","ヨドバシ.com","家電量販店","41610","4161","家電市場","30000","72.1","80.1","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHIIH炊飯ジャー 黒まる厚釜 1升炊き ブラック NW-QC18-BA","ヨドバシ.com","家電量販店","36320","3632","家電市場","26000","71.6","79.5","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBAオーブンレンジ 縦開き 18L ブラック ER-40C（K）","ヨドバシ.com","家電量販店","35110","3511","家電市場","25000","71.2","79.1","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHI小容量マイコン炊飯ジャー 3合炊き ブラック NL-BY05-BA","ヨドバシ.com","家電量販店","13000","1300","家電市場","9200","70.8","78.6","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBAIH炊飯器 5.5合炊き 備長炭ダイヤモンド釜 ホワイト RC-10HA（W）","ヨドバシ.com","家電量販店","18480","1848","家電市場","12700","68.7","76.4","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","SharkNinja コードレススティッククリーナー Shark PowerClean 360 PRO IW5271JBK","ヨドバシ.com","家電量販店","79750","7975","家電市場","54500","68.3","75.9","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHI圧力IH炊飯ジャー 炎舞炊き 5.5合炊き ブラック NW-NC10-BA","ヨドバシ.com","家電量販店","93000","9300","家電市場","63500","68.3","75.9","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARP コードレススティッククリーナー RACTIVE Air STATION EC-XR3-H","ヨドバシ.com","家電量販店","85180","8518","家電市場","58000","68.1","75.7","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","日立 HITACHI過熱水蒸気オーブンレンジ ヘルシーシェフ 27L チャコールグレー MRO-S7E H","ヨドバシ.com","家電量販店","69800","6980","家電市場","47000","67.3","74.8","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","ドリーミー DREAME コードレススティッククリーナー Dreame S1 Lite VAV13B","ヨドバシ.com","家電量販店","29800","2980","家電市場","20000","67.1","74.6","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARPオーブンレンジ PLAINLY 23L 縦開き ブラック","ヨドバシ.com","家電量販店","49290","4929","家電市場","33000","67","74.4","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARPオーブンレンジ PLAINLY 23L 縦開き ホワイト","ヨドバシ.com","家電量販店","49290","4929","家電市場","33000","67","74.4","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHIオーブンレンジ 23L 縦開き スレートブラック EU-FC23-BM","ヨドバシ.com","家電量販店","52300","5230","家電市場","35000","66.9","74.4","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","SharkNinja 軽量コードレススティッククリーナー Shark EVOPOWER SYSTEM BOOST＋","ヨドバシ.com","家電量販店","54800","0","家電市場","40000","73","73","2026-11-21","販売を終了・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBA真空圧力IH炊飯器 3.5合炊き グランホワイト RC-6MGAK（W）","ヨドバシ.com","家電量販店","65780","6578","家電市場","43000","65.4","72.6","2026-11-21","予約受付中・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHI圧力IH炊飯ジャー 炎舞炊き 1升炊き ブラック NW-NC18-BA","ヨドバシ.com","家電量販店","105300","10530","家電市場","68700","65.2","72.5","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","プラスマイナスゼロ スチームクリーナー ハンディ ブラウングレー XJN-K010-TH","ヨドバシ.com","家電量販店","15400","1540","家電市場","10000","64.9","72.2","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","東芝 TOSHIBA単機能レンジ フラットタイプ 横開き 16L ホワイト ER-M5C（W）","ヨドバシ.com","家電量販店","18480","1848","家電市場","12000","64.9","72.2","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","象印 ZOJIRUSHIIH炊飯ジャー 1升炊き ブラック NV-KA18-BA","ヨドバシ.com","家電量販店","33110","3311","家電市場","21000","63.4","70.5","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","タイガー TIGERIHジャー炊飯器 5.5合炊き パールブラック JPW-J100KP","ヨドバシ.com","家電量販店","29230","2923","家電市場","18500","63.3","70.3","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","日立 HITACHI過熱水蒸気オーブンレンジ ヘルシーシェフ 30L フロストホワイト MRO-W1E W","ヨドバシ.com","家電量販店","94800","9480","家電市場","60000","63.3","70.3","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","シャープ SHARP コードレススティッククリーナー RACTIVE Air 紙パック式 ホワイト EC-KR50A-W","ヨドバシ.com","家電量販店","63370","6337","家電市場","40000","63.1","70.1","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","タイガー TIGERIHジャー炊飯器 5.5合炊き モーブブラック JPW-K100KV","ヨドバシ.com","家電量販店","24080","2408","家電市場","15200","63.1","70.1","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","クイジナート ミル付きコーヒーメーカー ドリップワン ブラック DGB2KJ","ヨドバシ.com","家電量販店","23520","2352","家電市場","20000","85","94.5","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["携帯端末","Apple iPad（A16） 11型 Wi-Fi 256GB イエロー MD4J4J/A","ビックカメラ.com","家電量販店","91800","918","家電市場","81700","89","89.9","2026-11-21","入荷次第出荷（取り寄せ）・型番一致"],["携帯端末","Apple iPad（A16） 11型 Wi-Fi 256GB ピンク MD4P4J/A","ビックカメラ.com","家電量販店","91800","918","家電市場","81500","88.8","89.7","2026-11-21","入荷次第出荷（取り寄せ）・型番一致"],["携帯端末","Apple iPad（A16） 11型 Wi-Fi 256GB ブルー MD4H4J/A","ビックカメラ.com","家電量販店","91800","918","家電市場","81000","88.2","89.1","2026-11-21","入荷次第出荷（取り寄せ）・型番一致"],["携帯端末","Apple iPad（A16） 11型 Wi-Fi 256GB シルバー MD4G4J/A","ビックカメラ.com","家電量販店","91800","918","家電市場","80000","87.1","88","2026-11-21","入荷次第出荷（取り寄せ）・型番一致"],["家電","ヤマゼン オーブンレンジ 縦開き 20L ブラックグレー ERGB-F020TV","ヨドバシ.com","家電量販店","22000","2200","家電市場","17300","78.6","87.4","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","デロンギ 全自動コーヒーマシン Rivelia（リヴェリア）","ヨドバシ.com","家電量販店","218000","21800","家電市場","167300","76.7","85.3","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","デロンギ 全自動コーヒーマシン Magnifica Start ブラック","ヨドバシ.com","家電量販店","87800","8780","家電市場","66600","75.9","84.3","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","ガジア マジェンタ プレステージ オーバーアイス SUP051UGG1-MG","ヨドバシ.com","家電量販店","225720","22572","家電市場","170000","75.3","83.7","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","パナソニック オーブンレンジ 15L ホワイト NE-FS2E-W","ヨドバシ.com","家電量販店","32670","0","家電市場","27300","83.6","83.6","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","サンコー 全自動エスプレッソメーカー CREMONNA ZSPR25HBK","ヨドバシ.com","家電量販店","44260","4426","家電市場","32500","73.4","81.6","2026-11-21","お取り寄せ・型番一致・買取は家電市場の最高値"],["家電","デロンギ 全自動コーヒーマシン Magnifica Start グレイブラック","ヨドバシ.com","家電量販店","109800","10980","家電市場","80200","73","81.2","2026-11-21","在庫あり・型番一致・買取は家電市場の最高値"],["家電","サンコー 全自動コーヒーメーカー my barista","ヨドバシ.com","家電量販店","11160","1116","家電市場","8000","71.7","79.6","2026-11-21","お取り寄せ・型番一致・買取は家電市場の最高値"],["家電","パナソニック 単機能レンジ Bistro 26L ホワイト NE-FB2D-W","ヨドバシ.com","家電量販店","44550","0","家電市場","35300","79.2","79.2","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","ツインバード 全自動コーヒーメーカー 3カップ ホワイト","ヨドバシ.com","家電量販店","28090","2809","家電市場","19800","70.5","78.3","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","シロカ 全自動コーヒーメーカー カフェばこ シルバー","ヨドバシ.com","家電量販店","19800","1980","家電市場","13800","69.7","77.4","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"],["家電","タイガー 全自動コーヒーメーカー HYBRID BREW スミクロ","ヨドバシ.com","家電量販店","39600","3960","家電市場","27000","68.2","75.8","2026-11-21","在庫残少・型番一致・買取は家電市場の最高値"]];var dash={data:function(){return{status:'ok',data:__D.map(function(a){var o={};__K.forEach(function(k,i){o[k]=a[i]});return o})}},onData:function(f){f()}};</script>
+<script>
+var CATS=['すべて','携帯端末','ゲーム機','家電'];
+var cur='すべて';var basis='inc';
+try{var sb=window.localStorage.getItem('pd-basis');if(sb==='ex'||sb==='inc')basis=sb}catch(e){}
+function mv(r){return num(basis==='ex'?r.margin_excl_points_pct:r.margin_incl_points_pct)}
+try{var sv=window.localStorage.getItem('pd-cat');if(sv&&CATS.indexOf(sv)>-1)cur=sv}catch(e){}
+function num(v){return Number(String(v==null?'':v).replace(/,/g,''))}
+function yen(v){return num(v).toLocaleString('ja-JP')+'円'}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function band(p){return p>=100?'p-good':(p>=90?'p-mid':'p-low')}
+function cell(cls){return el('td',cls)}
+function table(rows){
+ var t=el('table'),th=el('thead');
+ var g=el('tr');
+ var g1=el('th','',' ');g1.rowSpan=2;g1.textContent='商品';g.appendChild(g1);
+ var g2=el('th','n','買取');g2.rowSpan=2;g.appendChild(g2);
+ var ge=el('th','grp sep','ポイントを含めない');ge.colSpan=2;g.appendChild(ge);
+ var gi=el('th','grp sep','ポイントを差し引く');gi.colSpan=2;g.appendChild(gi);
+ var g3=el('th','sep','在庫・メモ');g3.rowSpan=2;g.appendChild(g3);
+ th.appendChild(g);
+ var s=el('tr');[['仕入れ額','n sep'],['利益率','n'],['仕入れ額','n sep'],['利益率','n']].forEach(function(c){s.appendChild(el('th',c[1],c[0]))});
+ th.appendChild(s);t.appendChild(th);
+ var tb=el('tbody');
+ rows.forEach(function(r){
+  var x=el('tr');
+  var a=el('td');a.appendChild(el('div','name',r.product));
+  var m=el('div','meta');m.appendChild(el('span','tag',r.category||''));m.appendChild(el('span','tag',r.retailer_type||''));m.appendChild(document.createTextNode(r.retailer||''));a.appendChild(m);x.appendChild(a);
+  var price=num(r.retailer_price_yen),pt=num(r.points_yen),kp=num(r.kaitori_price_yen);
+  var inc=num(r.margin_incl_points_pct),ex=num(r.margin_excl_points_pct);
+  var c=el('td','n');c.appendChild(el('div','big',yen(kp)));c.appendChild(el('div','small',r.kaitori_shop||''));x.appendChild(c);
+  function pair(cost,pct,on,sub){
+   var p=el('td','n sep'+(on?' on':''));p.appendChild(el('div','big',yen(cost)));p.appendChild(el('div','small',sub));x.appendChild(p);
+   var q=el('td','n'+(on?' on':''));q.appendChild(el('span','pill '+band(pct)+(on?'':' dim'),pct.toFixed(1)+'%'));
+   var gain=kp-cost;q.appendChild(el('div','gain '+(gain>=0?'plus':'minus'),(gain>=0?'+':'−')+Math.abs(gain).toLocaleString('ja-JP')+'円'));x.appendChild(q);
+  }
+  pair(price,ex,basis==='ex','販売価格');
+  pair(price-pt,inc,basis==='inc',pt>0?('ポイント '+yen(pt)+' 引き'):'ポイントなし');
+  var n=r.note||'';var e=el('td','memo sep');
+  if(/販売休止|販売を終了|在庫なし/.test(n)){e.appendChild(el('span','stock-ng',n))}else{e.textContent=n}
+  x.appendChild(e);
+  tb.appendChild(x);
+ });
+ t.appendChild(tb);return t;
+}
+function fill(id,rows,msg){var box=document.getElementById(id);box.className='';box.textContent='';if(!rows.length){box.className='empty';box.textContent=msg;return}box.appendChild(table(rows))}
+var ALL=[];
+function draw(){
+ var rows=ALL.filter(function(r){return cur==='すべて'||r.category===cur});
+ rows.sort(function(a,b){return mv(b)-mv(a)});
+ var r100=rows.filter(function(r){return mv(r)>=100});
+ var r90=rows.filter(function(r){var v=mv(r);return v>=90&&v<100});
+ var rref=rows.filter(function(r){return mv(r)<90});
+ fill('t100',r100,'この区分では、今回は該当する商品がありません');
+ fill('t90',r90,'この区分では、今回は該当する商品がありません');
+ fill('tref',rref,'この区分では、該当する商品がありません');
+ document.getElementById('c100').textContent=r100.length+'件';
+ document.getElementById('c90').textContent=r90.length+'件';
+ document.getElementById('cref').textContent=rref.length+'件';
+ [].forEach.call(document.querySelectorAll('#basis button'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-b')===basis?'true':'false')});
+ var bl=basis==='ex'?'ポイントを含めない':'ポイント差し引き';
+ [].forEach.call(document.querySelectorAll('.bandby'),function(s){s.textContent='（'+bl+'で判定）'});
+ var tabs=document.getElementById('tabs');tabs.textContent='';
+ CATS.forEach(function(c){
+  var n=ALL.filter(function(r){return c==='すべて'||r.category===c}).length;
+  var b=el('button','tab',c);b.type='button';b.setAttribute('aria-pressed',c===cur?'true':'false');
+  b.appendChild(el('span','',String(n)));
+  b.addEventListener('click',function(){cur=c;try{window.localStorage.setItem('pd-cat',c)}catch(e){}draw()});
+  tabs.appendChild(b);
+ });
+ var d=ALL[0]&&ALL[0].checked_date;if(d)document.getElementById('foot').textContent='確認日 '+d+'。'+'※ 価格は確認時点の値です。購入前に各サイトで最新の価格・在庫・購入制限を、売却前に買取店の最新価格と色・状態による減額を確認してください。毎日9時・12時・18時に自動更新します。';
+}
+function render(){
+ var m=dash.data('matches');
+ if(m.status!=='ok'){ if(m.status!=='loading'){['t100','t90','tref'].forEach(function(id){var b=document.getElementById(id);b.className='empty';b.textContent='データを読み込めませんでした'})} return; }
+ ALL=m.data||[];draw();
+}
+[].forEach.call(document.querySelectorAll('#basis button'),function(b){b.addEventListener('click',function(){basis=b.getAttribute('data-b');try{window.localStorage.setItem('pd-basis',basis)}catch(e){}if(ALL.length)draw()})});
+dash.onData(render);
+</script>
+</body></html>
